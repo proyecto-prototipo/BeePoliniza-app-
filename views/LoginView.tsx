@@ -147,21 +147,51 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* LADO DERECHO: INFO */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#121212] to-black relative p-10 lg:p-16 flex flex-col justify-between text-white border-l border-white/5 min-h-[500px]">
+        <div className="hidden md:flex w-1/2 bg-[#0a0a0a] relative p-12 lg:p-20 flex flex-col justify-center text-white border-l border-white/10 overflow-hidden min-h-[500px]">
+          {/* Fondo con efecto de profundidad mejorado */}
           <div className="absolute inset-0 hexagon-pattern opacity-10"></div>
-          <div className="relative z-10 bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-[2rem] inline-flex items-center gap-4">
-             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.5)]"></div>
-             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sistemas IoT Online</span>
-          </div>
-          <div className="relative z-10 space-y-6">
-            <h3 className="text-4xl lg:text-5xl font-black leading-tight text-white">"Tu Inversión, Monitoreada<br/>Segundo a Segundo"</h3>
-            <p className="text-gray-400 text-lg leading-relaxed">Con BeeTrack Live, tienes <span className="text-white font-bold">telemetría biológica y GPS en tiempo real</span> de cada colmena contratada.</p>
-            <div className="grid grid-cols-2 gap-4 pt-8">
-              <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                 <p className="text-3xl font-black">12.4k <span className="text-[#FFBF00] text-xs">ha</span></p>
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#FFBF00] opacity-[0.03] blur-[100px] rounded-full"></div>
+          
+          {/* Badge Superior - Ahora posicionado absolutamente arriba para dejar aire */}
+          <div className="absolute top-12 left-12 lg:left-20 z-10">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-1 pr-6 rounded-full flex items-center gap-3">
+              <div className="bg-green-500/20 p-2 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
               </div>
-              <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md">
-                 <p className="text-3xl font-black text-green-500">98.2%</p>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-green-400">Sistemas IoT Online</span>
+            </div>
+          </div>
+
+          {/* Contenido Principal - Centrado con justify-center en el padre */}
+          <div className="relative z-10 space-y-8">
+            <div className="space-y-4">
+              <h3 className="text-4xl lg:text-6xl font-black leading-[1.1] text-white tracking-tighter">
+                "Tu Inversión,<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFBF00] to-[#E6AC00]">
+                  Monitoreada
+                </span><br />
+                Segundo a Segundo"
+              </h3>
+              {/* Línea decorativa pro */}
+              <div className="h-1.5 w-24 bg-[#FFBF00] rounded-full shadow-[0_0_15px_rgba(255,191,0,0.4)]"></div>
+            </div>
+            
+            <p className="text-gray-400 text-xl leading-relaxed max-w-md">
+              Con BeeTrack Live, tienes 
+              <span className="text-white font-bold ml-1 border-b-2 border-[#FFBF00]/30 pb-0.5">
+                telemetría biológica y GPS en tiempo real
+              </span> 
+            </p>
+
+            {/* Pequeño detalle visual de carga/estado para que no se vea vacío */}
+            <div className="pt-4 flex gap-4 opacity-50">
+              <div className="flex items-center gap-2">
+                  <div className="w-1 h-1 bg-white rounded-full"></div>
+                  <span className="text-[8px] uppercase tracking-widest font-bold">Datos Encriptados</span>
+              </div>
+              <div className="flex items-center gap-2">
+                  <div className="w-1 h-1 bg-white rounded-full"></div>
+                  <span className="text-[8px] uppercase tracking-widest font-bold">Reportes en Tiempo Real</span>
               </div>
             </div>
           </div>
