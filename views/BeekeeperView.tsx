@@ -38,8 +38,8 @@ import {
   Bar,
   Cell
 } from 'recharts';
+import 'leaflet/dist/leaflet.css'; // MUEVE ESTA LÍNEA ARRIBA
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -334,7 +334,23 @@ const BeekeeperView: React.FC<{ activeTab: string, setActiveTab: (t: string) => 
   );
 };
 
-    useEffect(() => { fetchNegociaciones(); fetchMarketOffers(); fetchPuntos(); }, []);
+    useEffect(() => {
+      fetchPuntos();
+      fetchNegociaciones();
+      fetchMarketOffers();
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setUserLocation([pos.coords.latitude, pos.coords.longitude]);
+          },
+          (error) => {
+            console.warn("GPS denegado o error, usando Lima por defecto");
+            setUserLocation([-12.0959, -77.0768]);
+          }
+        );
+      }
+    }, []);
 
     function MapEventsHandler({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
     useMapEvents({
@@ -406,6 +422,30 @@ const MapViewUpdater = ({ center }: { center: [number, number] }) => {
       });
   }
  }, [center, map]);
+
+  return null;
+};
+
+const MapResizer = ({ center }: { center: [number, number] | null }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (!map) return;
+    
+    // Si no hay GPS, forzamos vista en Lima (PERU_CENTER)
+    if (!center) {
+      map.setView([-12.0959, -77.0768], 13);
+    } else {
+      map.setView(center, map.getZoom());
+    }
+    
+    // El truco del invalidateSize para quitar el fondo gris
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [map, center]);
 
   return null;
 };
@@ -1329,27 +1369,29 @@ if (activeTab === 'beetrack') {
       </div>
 
       {/* ÁREA DE MAPA Y PANEL */}
-      <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 min-h-[500px] md:min-h-0">        
-        {/* COLUMNA MAPA */}
-        <div className="lg:col-span-3 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative z-0">
-          <MapContainer 
-            center={userLocation} 
-            zoom={20} 
-            ref={mapRef}
-            scrollWheelZoom={true} 
-            style={{ height: '100vh', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+      <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 h-auto lg:h-[600px] min-h-[500px]">        {/* COLUMNA MAPA */}
+      {/* COLUMNA MAPA - Altura fija obligatoria */}
+      <div className="lg:col-span-3 h-[400px] lg:h-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative z-0">
+        <MapContainer 
+          key={activeTab}
+          center={userLocation || [-12.0959, -77.0768]} 
+          zoom={13} 
+          ref={mapRef}
+          scrollWheelZoom={true} 
+          style={{ height: '100%', width: '100%' }} // Importante: 100% para llenar el div
+        >
+          <MapResizer center={userLocation} />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap'
+          />
+                <MapResizer center={userLocation} />
+
 
             {/* Eventos y Localización */}
             {userLocation && (
               <Marker position={userLocation} icon={userLocationIcon}>
-                <Popup>
-                  <div className="text-center font-bold">Estás aquí (GPS)</div>
-                </Popup>
+                <Popup><b>Estás aquí</b></Popup>
               </Marker>
             )}
 
@@ -1428,14 +1470,14 @@ if (activeTab === 'beetrack') {
         </div>
 
         {/* COLUMNA LISTADO (PANEL DERECHO) */}
-        <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 flex flex-col min-h-0">
-           <h3 className="font-bold text-xl mb-4 text-[#1A1A1A] flex items-center gap-2">
-             <Zap size={18} className="text-[#FFBF00]" /> Puntos en Campo
-           </h3>
+        <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 flex flex-col h-[400px] lg:h-full overflow-hidden">
+          <h3 className="font-bold text-xl mb-4 text-[#1A1A1A] flex items-center gap-2 shrink-0">
+            <Zap size={18} className="text-[#FFBF00]" /> Puntos en Campo
+          </h3>
            
-           <div className="flex-grow overflow-y-auto pr-2 space-y-3">
-              {puntos.length > 0 ? (
-                puntos.map((p) => (
+           <div className="flex-grow overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              {puntos.filter(p => p.user_id === currentUser?.id).length > 0 ? (
+                puntos.filter(p => p.user_id === currentUser?.id).map((p) => (
                   <div key={p.id} 
                     onClick={() => {
                       if (mapRef.current) {
@@ -1719,7 +1761,7 @@ if (activeTab === 'beetrack') {
 
             {/* LADO DERECHO: MINI MAPA */}
             <div className="w-full md:w-[480px] bg-gray-100 relative">
-              <MapContainer center={PERU_CENTER} zoom={13} style={{ height: '100%', width: '100%' }}>
+              <MapContainer key={activeTab} center={PERU_CENTER} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 
                 {/* AUTO-ENFOQUE AL ESCRIBIR COORDENADAS */}

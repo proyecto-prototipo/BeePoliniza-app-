@@ -111,6 +111,17 @@ const FarmerView: React.FC<{ activeTab: string, setActiveTab: (t: string) => voi
 
   const [negociaciones, setNegociaciones] = useState([]);
 
+  // Añade esto arriba, antes de FarmerView
+const MapResizer = ({ center }: { center: [number, number] | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    setTimeout(() => {
+      map.invalidateSize();
+      if (center) map.setView(center, map.getZoom());
+    }, 100);
+  }, [map, center]);
+  return null;
+};
 
 
   const [puntos, setPuntos] = useState<any[]>([]);
@@ -973,16 +984,15 @@ if (activeTab === 'beetrack') {
       </div>
 
       {/* ÁREA DE MAPA Y PANEL */}
-      <div className="flex-grow flex flex-col lg:grid lg:grid-cols-4 gap-6">
-        
+      <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 h-auto lg:h-[600px] min-h-[500px]">        
         {/* COLUMNA MAPA */}
-        <div className="h-[350px] md:h-full lg:col-span-3 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative z-0">
+        <div className="lg:col-span-3 h-[400px] lg:h-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative z-0">
           <MapContainer 
             center={userLocation || position} 
             zoom={15} 
             ref={mapRef}
             scrollWheelZoom={true} 
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '100%' }} // Esto asegura que llene el div padre
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -1062,16 +1072,14 @@ if (activeTab === 'beetrack') {
         </div>
 
         {/* COLUMNA LISTADO (PANEL DERECHO) */}
-        <div className="order-2 lg:order-1 bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 shadow-sm border border-gray-100 flex flex-col">
-           <h3 className="font-bold text-xl mb-4 text-[#1A1A1A] flex items-center gap-2">
+        <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 flex flex-col h-[400px] lg:h-full overflow-hidden">
+           <h3 className="font-bold text-xl mb-4 text-[#1A1A1A] flex items-center gap-2 shrink-0">
              <Zap size={18} className="text-[#FFBF00]" /> Puntos en Campo
            </h3>
            
            <div className="flex-grow overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-              
-                {/* Agregamos una validación para mostrar los puntos si existen */}
-                {puntos && puntos.length > 0 ? (
-                  puntos.map((p) => (
+              {puntos && puntos.length > 0 ? (
+                puntos.map((p) => (
                     <div key={p.id} 
                      onClick={() => {
                       if (mapRef.current) {
@@ -1081,26 +1089,25 @@ if (activeTab === 'beetrack') {
                       }
                     }}
 
-                    className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-[#FFBF00] transition-colors group cursor-pointer">
-                  
+                  className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-[#FFBF00] transition-colors group cursor-pointer" >                  
+                      
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="bg-yellow-400 p-2 rounded-lg text-white shrink-0">
-                            <MapPin size={16} />
-                          </div>
-                          <div className="overflow-hidden">
-                            <p className="text-sm font-bold truncate text-[#1A1A1A]">{p.nombre}</p>
-                            <p className="text-[10px] text-gray-400 font-mono">
-                              {/* Mostramos el ID del contrato o si es punto de red abierta */}
-                              Contrato: #{p.contrato_id || 'Red'} | {p.lat.toFixed(4)}, {p.lng.toFixed(4)}
-                            </p>
-                          </div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-yellow-400 p-2 rounded-lg text-white shrink-0">
+                          <MapPin size={16} />
                         </div>
-                        {/* Etiqueta de Activo como en tu prototipo */}
-                        <span className="bg-green-100 text-green-700 text-[9px] font-bold px-2 py-1 rounded-full shrink-0"> ACTIVO
-                        </span>
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-bold truncate text-[#1A1A1A]">{p.nombre}</p>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            Contrato: #{p.contrato_id || 'Red'} | {p.lat.toFixed(4)}, {p.lng.toFixed(4)}
+                          </p>
+                        </div>
                       </div>
+                      <span className="bg-green-100 text-green-700 text-[9px] font-bold px-2 py-1 rounded-full shrink-0"> 
+                        ACTIVO
+                      </span>
                     </div>
+                  </div>
                   ))
                 ) : (
                   /* Mensaje sutil si no hay nada en la base de datos todavía */
