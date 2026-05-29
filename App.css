@@ -1,4 +1,6 @@
 /* Efecto de Radar Pro-AI para BeePoliniza */
+@import "tailwindcss";
+
 @keyframes radar-pulse {
   0% {
     transform: scale(0.5);
